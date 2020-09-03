@@ -75,14 +75,57 @@ class BlackStone(Label):
 class PutButton(Button):
     def __init__(self, tile_id,  **kwargs):
         super().__init__(**kwargs)
-        self.tile_id =tile_id
+        self.tile_id = tile_id
 
     def on_press(self):
         print(self.tile_id)
-        x = self.tile_id[0]
-        y = self.tile_id[1]
-        self.parent.parent.tile[x][y] = self.parent.parent.turn
-        self.parent.parent.put_stone()
+        put_x = self.tile_id[0]
+        put_y = self.tile_id[1]
+        check =[]
+        turn = self.parent.parent.turn
+        
+        # 左上確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, -1, turn)
+        # 上確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, 0, turn)
+        # 右上確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, 1, turn)
+        # 右確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 0, 1, turn)
+        # 右下確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, 1, turn)
+        # 下確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, 0, turn)
+        # 左下確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, -1, turn)
+        # 左確認
+        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 0, -1, turn)
+        if check:
+            self.parent.parent.tile[put_x][put_y] = turn
+            for x, y in check:
+                self.parent.parent.tile[x][y] = turn
+            self.parent.parent.put_stone()
+    
+    def can_reverse_check(self, check_x, check_y, dx, dy, turn):
+        tmp = []
+        while True:
+            check_x += dx
+            check_y += dy
+            if check_x < 0 or check_x > 7:
+                tmp = []
+                break
+            if check_y < 0 or check_y > 7:
+                tmp = []
+                break
+
+            if self.parent.parent.tile[check_x][check_y] == turn:
+                break
+            elif self.parent.parent.tile[check_x][check_y] == ' ':
+                tmp = []
+                break
+            else:
+                tmp.append((check_x, check_y))
+        return tmp
 
 class OthelloApp(App):
     title = 'オセロ'
