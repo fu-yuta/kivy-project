@@ -6,6 +6,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.graphics import Color, Ellipse, Rectangle
 
 class OthelloGrid(Widget):
@@ -33,7 +34,10 @@ class OthelloGrid(Widget):
     
     def put_stone(self):
         self.grid = GridLayout(cols=self.num, spacing=[3,3], size_hint_y=7)
-        
+        pass_flag = True
+        check = []
+        next_turn = 'W' if self.turn == 'B' else 'B'
+
         for x in range(self.num):
             for y in range(self.num):
                 if self.tile[x][y] == 'W':
@@ -42,12 +46,74 @@ class OthelloGrid(Widget):
                     self.grid.add_widget(BlackStone())
                 else:
                     self.grid.add_widget(PutButton(background_color=(0.451,0.3059,0.1882,1), background_normal='', tile_id=[x, y]))
+        
+        for x in range(self.num):
+            for y in range(self.num):
+                if self.tile[x][y] == ' ':
+                    check += self.can_reverse_check(x, y, next_turn)
+                if check:
+                    pass_flag = False
+                    break
+        
+        if pass_flag:
+            skip_turn_text = 'White Turn' if self.turn == 'B' else 'Black Turn'
+            content = Button(text='OK')
+            popup = Popup(title=skip_turn_text+' Skip!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+            content.bind(on_press=popup.dismiss)
+            popup.open()
+        else:
+            self.turn = next_turn
 
-        self.turn = 'W' if self.turn == 'B' else 'B'
         turn_text = 'Black Turn' if self.turn == 'B' else 'White Turn'
         self.creat_view(turn_text)
+    
+    def can_reverse_check(self, check_x, check_y, turn):
+        check =[]
+        # 左上確認
+        check += self.reverse_list(check_x, check_y, -1, -1, turn)
+        # 上確認
+        check += self.reverse_list(check_x, check_y, -1, 0, turn)
+        # 右上確認
+        check += self.reverse_list(check_x, check_y, -1, 1, turn)
+        # 右確認
+        check += self.reverse_list(check_x, check_y, 0, 1, turn)
+        # 右下確認
+        check += self.reverse_list(check_x, check_y, 1, 1, turn)
+        # 下確認
+        check += self.reverse_list(check_x, check_y, 1, 0, turn)
+        # 左下確認
+        check += self.reverse_list(check_x, check_y, 1, -1, turn)
+        # 左確認
+        check += self.reverse_list(check_x, check_y, 0, -1, turn)
+        return check
+
+    def reverse_list(self, check_x, check_y, dx, dy, turn):
+        tmp = []
+        while True:
+            check_x += dx
+            check_y += dy
+            if check_x < 0 or check_x > 7:
+                tmp = []
+                break
+            if check_y < 0 or check_y > 7:
+                tmp = []
+                break
+
+            if self.tile[check_x][check_y] == turn:
+                break
+            elif self.tile[check_x][check_y] == ' ':
+                tmp = []
+                break
+            else:
+                tmp.append((check_x, check_y))
+        return tmp
 
     def restart_game(self):
+        content = Button(text='OK')
+        popup = Popup(title='Restart Game!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+        content.bind(on_press=popup.dismiss)
+        popup.open()
+
         print("restart game")
         self.tile = [[' ' for x in range(self.num)] for x in range(self.num)]
         self.turn = 'W'
@@ -114,48 +180,12 @@ class PutButton(Button):
         check =[]
         turn = self.parent.parent.parent.turn
         
-        # 左上確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, -1, turn)
-        # 上確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, 0, turn)
-        # 右上確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], -1, 1, turn)
-        # 右確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 0, 1, turn)
-        # 右下確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, 1, turn)
-        # 下確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, 0, turn)
-        # 左下確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 1, -1, turn)
-        # 左確認
-        check += self.can_reverse_check(self.tile_id[0], self.tile_id[1], 0, -1, turn)
+        check += self.parent.parent.parent.can_reverse_check(self.tile_id[0], self.tile_id[1], turn)
         if check:
             self.parent.parent.parent.tile[put_x][put_y] = turn
             for x, y in check:
                 self.parent.parent.parent.tile[x][y] = turn
             self.parent.parent.parent.put_stone()
-    
-    def can_reverse_check(self, check_x, check_y, dx, dy, turn):
-        tmp = []
-        while True:
-            check_x += dx
-            check_y += dy
-            if check_x < 0 or check_x > 7:
-                tmp = []
-                break
-            if check_y < 0 or check_y > 7:
-                tmp = []
-                break
-
-            if self.parent.parent.parent.tile[check_x][check_y] == turn:
-                break
-            elif self.parent.parent.parent.tile[check_x][check_y] == ' ':
-                tmp = []
-                break
-            else:
-                tmp.append((check_x, check_y))
-        return tmp
 
 class RestartButton(Button):
     def __init__(self, **kwargs):
