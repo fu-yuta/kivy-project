@@ -35,6 +35,7 @@ class OthelloGrid(Widget):
     def put_stone(self):
         self.grid = GridLayout(cols=self.num, spacing=[3,3], size_hint_y=7)
         pass_flag = True
+        finish_flag = True
         check = []
         next_turn = 'W' if self.turn == 'B' else 'B'
 
@@ -50,22 +51,30 @@ class OthelloGrid(Widget):
         for x in range(self.num):
             for y in range(self.num):
                 if self.tile[x][y] == ' ':
+                    finish_flag = False
                     check += self.can_reverse_check(x, y, next_turn)
                 if check:
                     pass_flag = False
                     break
-        
-        if pass_flag:
-            skip_turn_text = 'White Turn' if self.turn == 'B' else 'Black Turn'
-            content = Button(text='OK')
-            popup = Popup(title=skip_turn_text+' Skip!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+
+        if finish_flag:
+            content = Button(text=self.judge_winner())
+            popup = Popup(title='Game set!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
             content.bind(on_press=popup.dismiss)
             popup.open()
-        else:
-            self.turn = next_turn
+            self.restart_game()
+        else:    
+            if pass_flag:
+                skip_turn_text = 'White Turn' if self.turn == 'B' else 'Black Turn'
+                content = Button(text='OK')
+                popup = Popup(title=skip_turn_text+' Skip!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+                content.bind(on_press=popup.dismiss)
+                popup.open()
+            else:
+                self.turn = next_turn
 
-        turn_text = 'Black Turn' if self.turn == 'B' else 'White Turn'
-        self.creat_view(turn_text)
+            turn_text = 'Black Turn' if self.turn == 'B' else 'White Turn'
+            self.creat_view(turn_text)
     
     def can_reverse_check(self, check_x, check_y, turn):
         check =[]
@@ -108,12 +117,20 @@ class OthelloGrid(Widget):
                 tmp.append((check_x, check_y))
         return tmp
 
-    def restart_game(self):
-        content = Button(text='OK')
-        popup = Popup(title='Restart Game!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
-        content.bind(on_press=popup.dismiss)
-        popup.open()
+    def judge_winner(self):
+        white = 0
+        black = 0
+        for x in range(self.num):
+            for y in range(self.num):
+                if self.tile[x][y] == 'W':
+                    white += 1
+                elif self.tile[x][y] == 'B':
+                    black += 1
+        print(white)
+        print(black)
+        return 'White Win!' if white >= black else 'Black Win!'
 
+    def restart_game(self):
         print("restart game")
         self.tile = [[' ' for x in range(self.num)] for x in range(self.num)]
         self.turn = 'W'
@@ -192,6 +209,10 @@ class RestartButton(Button):
         super().__init__(**kwargs)
 
     def on_press(self):
+        content = Button(text='OK')
+        popup = Popup(title='Restart Game!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+        content.bind(on_press=popup.dismiss)
+        popup.open()
         self.parent.parent.restart_game()
 
 class OthelloApp(App):
