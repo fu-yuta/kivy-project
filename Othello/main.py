@@ -15,8 +15,6 @@ class OthelloGrid(Widget):
         self.num = 8
         self.tile = [[' ' for x in range(self.num)] for x in range(self.num)]
         self.turn = 'W'
-
-        self.window_size = Window.width if Window.width <= Window.height else Window.height
         self.grid = GridLayout(cols=self.num, spacing=[3,3], size_hint_y=7)
 
         for x in range(self.num):
@@ -59,7 +57,7 @@ class OthelloGrid(Widget):
 
         if finish_flag:
             content = Button(text=self.judge_winner())
-            popup = Popup(title='Game set!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+            popup = Popup(title='Game set!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width, Window.height/3))
             content.bind(on_press=popup.dismiss)
             popup.open()
             self.restart_game()
@@ -151,13 +149,14 @@ class OthelloGrid(Widget):
 
     def creat_view(self, turn_text):
         self.clear_widgets()
-        self.turn_label = Label(text=turn_text, width=self.window_size, size_hint_y=1, font_size='30sp')
+        self.turn_label = Label(text=turn_text, width=Window.width , size_hint_y=1, font_size='30sp')
         self.restart_button = RestartButton(text='Restart')
-        self.layout = BoxLayout(orientation='vertical', spacing=10, size=(self.window_size, self.window_size))
+        self.layout = BoxLayout(orientation='vertical', spacing=10, size=(Window.width, Window.height))
         self.layout.add_widget(self.turn_label)
         self.layout.add_widget(self.grid)
         self.layout.add_widget(self.restart_button)
         self.add_widget(self.layout)
+
 
 class WhiteStone(Label):
     def __init__(self, **kwargs):
@@ -210,7 +209,7 @@ class RestartButton(Button):
 
     def on_press(self):
         content = Button(text='OK')
-        popup = Popup(title='Restart Game!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+        popup = Popup(title='Restart Game!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width, Window.height/3))
         content.bind(on_press=popup.dismiss)
         popup.open()
         self.parent.parent.restart_game()
