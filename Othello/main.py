@@ -65,7 +65,7 @@ class OthelloGrid(Widget):
             if pass_flag:
                 skip_turn_text = 'White Turn' if self.turn == 'B' else 'Black Turn'
                 content = Button(text='OK')
-                popup = Popup(title=skip_turn_text+' Skip!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width/3, Window.height/3))
+                popup = Popup(title=skip_turn_text+' Skip!', content=content, auto_dismiss=False, size_hint=(None, None), size=(Window.width, Window.height/3))
                 content.bind(on_press=popup.dismiss)
                 popup.open()
             else:
